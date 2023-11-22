@@ -44,6 +44,7 @@ Is factoring out as much common code as possible always a good thing? Did the re
 of this requirement? How about the maintainability?
 
 I<Always>? Clearly not. But in this case, it was a good thing. I think the readability and maintainability actually went
-up.
+up. However, "a" and "b" aren't very illuminating capture group names. Let's say it's
+L<"80 want with 20 code"|https://grugbrain.dev>.
 =end item
 =end pod
