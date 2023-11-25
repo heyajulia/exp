@@ -1,0 +1,13 @@
+#!/usr/bin/env raku
+
+sub MAIN(Str $regex, Bool :v(:$verbose) = False, Bool :d(:$dry-run) = False) {
+    my $regex-object = rx/<$regex>/;
+
+    for dir(".") {
+        my $basename = .basename;
+        if $basename ~~ $regex-object {
+            say "$basename" if $verbose || $dry-run;
+            .unlink unless $dry-run;
+        }
+    }
+}
