@@ -1,6 +1,13 @@
 #!/usr/bin/env raku
 
-unit sub MAIN(Str $regex, Bool :v(:$verbose) = False, Bool :d(:$dry-run) = False);
+unit sub MAIN(
+    #| the regex to match against file names
+    Str $regex,
+    #| print file names as they are deleted
+    Bool :v(:$verbose) = False,
+    #| don't actually delete anything, implies --verbose
+    Bool :d(:$dry-run) = False
+);
 
 my $regex-object = rx/<$regex>/;
 
