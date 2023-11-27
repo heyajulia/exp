@@ -1,4 +1,5 @@
 #!/usr/bin/env raku
+use File::Directory::Tree;
 
 unit sub MAIN(
     #| the regex to match against file names
@@ -6,15 +7,30 @@ unit sub MAIN(
     #| print file names as they are deleted
     Bool :v(:$verbose) = False,
     #| don't actually delete anything, implies --verbose
-    Bool :d(:$dry-run) = False
+    Bool :d(:$dry-run) = False,
+    #| keep files that match the regex instead of deleting them
+    Bool :k(:$keep) = False
 );
 
 my $regex-object = rx/<$regex>/;
 
 for dir(".") {
+    FIRST {
+        my $will-or-would = $dry-run ?? "would" !! "will";
+        say "these files $will-or-would be DELETED:" if $verbose || $dry-run;
+    }
+
     my $basename = .basename;
-    next unless $basename ~~ $regex-object;
+    if $keep {
+        next unless $basename !~~ $regex-object;
+    } else {
+        next unless $basename ~~ $regex-object;
+    }
 
     say "$basename" if $verbose || $dry-run;
-    .unlink unless $dry-run;
+    delete($_) unless $dry-run;
 }
+
+multi sub delete(IO::Path $path where *.d) { rmtree($path); }
+
+multi sub delete(IO::Path $path where *.f) { $path.unlink; }
