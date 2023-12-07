@@ -1,11 +1,10 @@
 public class Race {
+    public static long letsRace(long raceLengthMs, long recordMm) {
+        long beatWays = 0;
 
-    public static int letsRace(int raceLengthMs, long recordMm) {
-        int beatWays = 0;
-
-        for (int holdMs = 0; holdMs <= raceLengthMs; holdMs++) {
-            int remainingMs = raceLengthMs - holdMs;
-            long distanceMm = (long) holdMs * remainingMs;
+        for (long holdMs = 0; holdMs <= raceLengthMs; holdMs++) {
+            long remainingMs = raceLengthMs - holdMs;
+            long distanceMm = holdMs * remainingMs;
 
             if (distanceMm > recordMm) {
                 beatWays++;
@@ -18,7 +17,7 @@ public class Race {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
 
-        System.out.println(letsRace(42686985, 284100511221341L));
+        System.out.println(letsRace(42686985L, 284100511221341L));
         System.out.println("Took " + (System.currentTimeMillis() - start) + "ms");
     }
 }
