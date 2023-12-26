@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+"""
+Remove unnecessary columns from CSVs.
+
+Usage:
+    clean-csv loc org country < input.csv > output.tsv
+"""
+
+import csv
+import argparse
+import sys
+
+
+class UnixTabDialect(csv.unix_dialect):
+    delimiter = "\t"
+
+
+def rename_field(name):
+    NAMES = {
+        "ip": "IP",
+        "loc": "Location",
+        "timezone": "Time zone",
+        "org": "Organization",
+    }
+
+    try:
+        return NAMES[name]
+    except KeyError:
+        return name.replace("_", " ").title()
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Remove unnecessary columns from CSVs."
+    )
+    parser.add_argument("keep", nargs="+", help="Column names to keep")
+
+    args = parser.parse_args()
+
+    reader = csv.DictReader(sys.stdin)
+    writer = csv.DictWriter(
+        sys.stdout, fieldnames=map(rename_field, args.keep), dialect=UnixTabDialect
+    )
+
+    writer.writeheader()
+
+    for row in reader:
+        writer.writerow({rename_field(k): row[k] for k in args.keep})
+
+
+if __name__ == "__main__":
+    main()
