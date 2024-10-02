@@ -1,0 +1,8 @@
+{
+  "[uiua]": {
+    "editor.fontFamily": "Uiua386",
+    "editor.fontSize": 14.25,
+    "editor.suggestFontSize": 0,
+    "editor.unicodeHighlight.ambiguousCharacters": false
+  }
+}
