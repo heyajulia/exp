@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bsky Handle to DID</title>
+    <style>
+      * {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #fffacd;
+        color: #333;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 500px;
+        padding: 20px;
+        background-color: #ffffe0;
+        border: 2px solid #cccc99;
+        border-radius: 5px;
+        box-shadow: 0 4px 0px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      label,
+      .message {
+        display: block;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #cccc99;
+        border-radius: 4px;
+        background-color: #ffffe0;
+        color: #333;
+        box-sizing: border-box;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #cccc99;
+        color: #333;
+        border: 2px solid #999966;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        box-shadow: 0 4px 0px rgba(0, 0, 0, 0.1);
+      }
+
+      button:hover {
+        background-color: #999966;
+        color: #fff;
+      }
+
+      .message {
+        margin-top: 20px;
+        font-size: 1em;
+        color: #333;
+      }
+
+      .error {
+        color: #cc0000;
+      }
+
+      .success {
+        color: #339900;
+      }
+
+      a {
+        color: #333;
+      }
+
+      .license {
+        font-size: 0.9em;
+        margin-top: 20px;
+        color: #666;
+        display: none;
+        text-align: justify;
+      }
+
+      .license-toggle {
+        cursor: pointer;
+        color: #333;
+        text-decoration: underline;
+        font-size: 0.9em;
+        margin-top: 20px;
+      }
+
+      code {
+        display: block;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: "Berkeley Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>bsky Handle to DID Resolver</h2>
+      <form>
+        <label for="url">Enter bsky URL:</label>
+        <input type="text" id="url" name="url" placeholder="https://bsky.app/profile/username.bsky.social" required />
+        <button type="submit">Resolve</button>
+      </form>
+      <div id="message" class="message"></div>
+      <div class="license-toggle" onclick="togglelicense()">license</div>
+      <div id="license" class="license">
+        <p>
+          <code>
+            Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is
+            hereby granted.<br /><br />
+
+            THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE
+            INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+            ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+            USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+            OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</code
+          >
+        </p>
+      </div>
+    </div>
+
+    <script>
+      document.querySelector("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const urlField = document.querySelector("#url");
+        const message = document.querySelector("#message");
+        const url = urlField.value.trim();
+
+        message.textContent = "";
+        message.className = "message";
+
+        try {
+          const u = new URL(url);
+          if (u.hostname !== "bsky.app") {
+            message.textContent = "Error: Not a valid bsky URL.";
+            message.classList.add("error");
+            return;
+          }
+
+          const handle = /(?<=\/profile\/)[^/]+/.exec(u.pathname)?.[0];
+          if (!handle) {
+            message.textContent = "Error: No handle found in the URL.";
+            message.classList.add("error");
+            return;
+          }
+
+          const resp = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${handle}`);
+          const data = await resp.json();
+          const { did } = data;
+
+          if (!did) {
+            message.textContent = "Error: No DID found for this handle.";
+            message.classList.add("error");
+            return;
+          }
+
+          const updatedURL = url.replace(handle, did);
+
+          //   message.innerHTML = `Resolved URL: <strong><a href="${updatedURL}">${updatedURL}</a></strong>`;
+          message.innerHTML = getResolvedURLMessage(updatedURL);
+          message.classList.add("success");
+        } catch (error) {
+          message.textContent = "Error: Invalid URL format.";
+          message.classList.add("error");
+        }
+      });
+
+      function togglelicense() {
+        const license = document.getElementById("license");
+        const toggle = document.querySelector(".license-toggle");
+        if (license.style.display === "none") {
+          license.style.display = "block";
+          toggle.textContent = "[x] license";
+        } else {
+          license.style.display = "none";
+          toggle.textContent = "license";
+        }
+      }
+
+      function getResolvedURLMessage(url) {
+        const span = document.createElement("span");
+        span.textContent = "Resolved URL: ";
+
+        const strong = document.createElement("strong");
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.textContent = url;
+
+        strong.appendChild(a);
+        span.appendChild(strong);
+
+        return span.outerHTML;
+      }
+    </script>
+  </body>
+</html>
